@@ -1,32 +1,512 @@
 <!DOCTYPE html>
-<html lang="en">
-    <head>
-        <meta charset="UTF-8" />
-        <link rel="stylesheet" href="styles.css" />
-        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <title>PakePlus App</title>
-        <script type="module" src="/main.js" defer></script>
-    </head>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>iOS设备信息生成器（最新机型版）</title>
+    <style>
+        :root {
+            --bg-dark: #000000;
+            --bg-card: #1c1c1e;
+            --text-primary: #ffffff;
+            --text-secondary: #ebebf5;
+            --accent-blue: #0a84ff;
+            --border-color: #38383a;
+        }
+        
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background-color: var(--bg-dark);
+            color: var(--text-primary);
+            line-height: 1.6;
+            padding: 20px;
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding: 20px;
+            border-bottom: 1px solid var(--border-color);
+        }
+        
+        h1 {
+            font-size: 2.2rem;
+            margin-bottom: 10px;
+            background: linear-gradient(90deg, #0a84ff, #30d158);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        
+        .main-content {
+            display: grid;
+            grid-template-columns: 300px 1fr;
+            gap: 25px;
+        }
+        
+        .panel {
+            background: var(--bg-card);
+            border-radius: 16px;
+            padding: 25px;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+            border: 1px solid var(--border-color);
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: var(--text-secondary);
+        }
+        
+        select, input, button, textarea {
+            width: 100%;
+            padding: 12px 15px;
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            font-size: 14px;
+            background: #2c2c2e;
+            color: var(--text-primary);
+            transition: all 0.2s ease;
+        }
+        
+        select:focus, input:focus {
+            outline: none;
+            border-color: var(--accent-blue);
+        }
+        
+        button {
+            background: var(--accent-blue);
+            color: white;
+            border: none;
+            cursor: pointer;
+            font-weight: 600;
+            margin-top: 5px;
+        }
+        
+        button:hover {
+            background: #0066cc;
+        }
+        
+        .btn-green {
+            background: #30d158;
+        }
+        
+        .btn-green:hover {
+            background: #25a248;
+        }
+        
+        .output-area {
+            min-height: 500px;
+            font-family: 'Monaco', 'Consolas', monospace;
+            font-size: 13px;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            padding: 15px;
+            background: #000000;
+            border-radius: 8px;
+            overflow-x: auto;
+            line-height: 1.8;
+        }
+        
+        .action-buttons {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+        
+        .format-info {
+            background: #2c2c2e;
+            padding: 15px;
+            border-radius: 10px;
+            margin-top: 20px;
+            font-size: 12px;
+            color: var(--text-secondary);
+        }
+        
+        .stats {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        
+        .stat-item {
+            background: #2c2c2e;
+            padding: 15px;
+            border-radius: 10px;
+            flex: 1;
+            text-align: center;
+        }
+        
+        .stat-value {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: var(--accent-blue);
+        }
+        
+        .stat-label {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>📱 iOS设备信息生成器（最新机型版）</h1>
+            <p class="subtitle">支持iPhone 17系列及iOS 26系统，生成可直接复制到记事本的格式化设备信息</p>
+        </header>
+        
+        <div class="main-content">
+            <!-- 左侧控制面板 -->
+            <div class="panel">
+                <h3>生成配置</h3>
+                
+                <div class="form-group">
+                    <label for="region">销售地区：</label>
+                    <select id="region">
+                        <option value="中国">中国</option>
+                        <option value="美国">美国</option>
+                        <option value="日本">日本</option>
+                        <option value="香港">香港</option>
+                        <option value="欧洲">欧洲</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label for="model">设备型号：</label>
+                    <select id="model">
+                        <!-- iPhone 17 系列 (2025) -->
+                        <option value="iPhone18,1">iPhone 17</option>
+                        <option value="iPhone18,2">iPhone 17 Pro</option>
+                        <option value="iPhone18,3">iPhone 17 Pro Max</option>
+                        <option value="iPhone17,1">iPhone 17 Air</option>
+                        
+                        <!-- iPhone 16 系列 (2024) -->
+                        <option value="iPhone16,1">iPhone 16</option>
+                        <option value="iPhone16,2">iPhone 16 Plus</option>
+                        <option value="iPhone16,3">iPhone 16 Pro</option>
+                        <option value="iPhone16,4">iPhone 16 Pro Max</option>
+                        
+                        <!-- iPhone 15 系列 (2023) -->
+                        <option value="iPhone15,4">iPhone 15</option>
+                        <option value="iPhone15,5">iPhone 15 Plus</option>
+                        <option value="iPhone15,2">iPhone 15 Pro</option>
+                        <option value="iPhone15,3">iPhone 15 Pro Max</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label for="ios_version">iOS版本：</label>
+                    <select id="ios_version">
+                        <!-- iOS 26 系列 (2025) -->
+                        <option value="26.1">iOS 26.1</option>
+                        <option value="26.0.1">iOS 26.0.1</option>
+                        <option value="26.0">iOS 26.0</option>
+                        
+                        <!-- iOS 17 系列 (2023-2024) -->
+                        <option value="17.5">iOS 17.5</option>
+                        <option value="17.4.1">iOS 17.4.1</option>
+                        <option value="17.3.1">iOS 17.3.1</option>
+                        <option value="17.2.1">iOS 17.2.1</option>
+                        <option value="17.1.2">iOS 17.1.2</option>
+                        <option value="17.1.1">iOS 17.1.1</option>
+                        
+                        <!-- iOS 16 系列 -->
+                        <option value="16.7.2">iOS 16.7.2</option>
+                        <option value="16.6.1">iOS 16.6.1</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label for="count">生成数量：</label>
+                    <input type="number" id="count" value="3" min="1" max="100">
+                </div>
+                
+                <button id="generate-btn">生成设备数据</button>
+                
+                <div class="action-buttons">
+                    <button id="copy-btn" class="btn-green">复制到剪贴板</button>
+                    <button id="clear-btn">清空结果</button>
+                </div>
+                
+                <div class="format-info">
+                    <h4>格式说明：</h4>
+                    <p>序列号----IMEI----IMEI(少一位)----WiFi地址----蓝牙地址----UDID----设备标识符----型号代码----设备型号----销售型号----内部代号----芯片代号----基带版本----iOS版本</p>
+                </div>
+            </div>
+            
+            <!-- 右侧结果面板 -->
+            <div class="panel">
+                <h3>生成结果</h3>
+                
+                <div class="stats">
+                    <div class="stat-item">
+                        <div class="stat-value" id="device-count">0</div>
+                        <div class="stat-label">设备数量</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value" id="unique-model">0</div>
+                        <div class="stat-label">不同型号</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value" id="latest-ios">-</div>
+                        <div class="stat-label">最新iOS</div>
+                    </div>
+                </div>
+                
+                <textarea class="output-area" id="output-result" rows="20" placeholder="生成的设备信息将显示在这里..."></textarea>
+            </div>
+        </div>
+    </div>
 
-    <body>
-        <main class="container">
-            <h1>Welcome to PakePlus</h1>
-            <form class="row" id="greet-form">
-                <input id="inputValue" placeholder="Enter a something..." />
-            </form>
-            <div class="resultBox">
-                <span>result: </span>
-                <span id="result"></span>
-            </div>
-            <div class="invokeBox">
-                <button id="openUrl">open_url_browser</button>
-                <button id="openUrlNew">open_url_new</button>
-                <button id="runCommand">run_command</button>
-                <button id="downloadFile">download_file</button>
-                <button id="getExeDir">get_exe_dir</button>
-                <button id="getEnvVar">get_env_var</button>
-                <button id="findPort">find_port</button>
-            </div>
-        </main>
-    </body>
+    <script>
+        // iOS设备生成器类
+        class iOSDeviceGenerator {
+            constructor() {
+                this.regions = {
+                    "中国": "LL/A",
+                    "美国": "LL/A", 
+                    "日本": "J/A",
+                    "香港": "ZP/A",
+                    "欧洲": "B/A"
+                };
+                
+                this.deviceModels = {
+                    // iPhone 17 系列 (2025)
+                    "iPhone18,1": { name: "iPhone 17", internal: "d74gap", chip: "t8115", baseband: "20A392" },
+                    "iPhone18,2": { name: "iPhone 17 Pro", internal: "d74gap", chip: "t8115", baseband: "20A392" },
+                    "iPhone18,3": { name: "iPhone 17 Pro Max", internal: "d74gap", chip: "t8115", baseband: "20A392" },
+                    "iPhone17,1": { name: "iPhone 17 Air", internal: "d74gap", chip: "t8115", baseband: "20A392" },
+                    
+                    // iPhone 16 系列 (2024)
+                    "iPhone16,1": { name: "iPhone 16", internal: "d73gap", chip: "t8112", baseband: "19F77" },
+                    "iPhone16,2": { name: "iPhone 16 Plus", internal: "d73gap", chip: "t8112", baseband: "19F77" },
+                    "iPhone16,3": { name: "iPhone 16 Pro", internal: "d73gap", chip: "t8112", baseband: "19F77" },
+                    "iPhone16,4": { name: "iPhone 16 Pro Max", internal: "d73gap", chip: "t8112", baseband: "19F77" },
+                    
+                    // iPhone 15 系列 (2023)
+                    "iPhone15,4": { name: "iPhone 15", internal: "d63gap", chip: "t8103", baseband: "18D61" },
+                    "iPhone15,5": { name: "iPhone 15 Plus", internal: "d63gap", chip: "t8103", baseband: "18D61" },
+                    "iPhone15,2": { name: "iPhone 15 Pro", internal: "d63gap", chip: "t8103", baseband: "18D61" },
+                    "iPhone15,3": { name: "iPhone 15 Pro Max", internal: "d63gap", chip: "t8103", baseband: "18D61" }
+                };
+            }
+            
+            // 生成随机序列号[1](@ref)[2](@ref)
+            generateSerialNumber() {
+                const chars = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+                let result = '';
+                const factoryCodes = ['F', 'C', 'D', 'G'];
+                result += factoryCodes[Math.floor(Math.random() * factoryCodes.length)];
+                
+                // 年份和星期代码 (2025年对应T)
+                result += 'T'; // 2025年固定为T
+                result += String.fromCharCode(65 + Math.floor(Math.random() * 26)); // 随机周数
+                
+                // 4个随机字符
+                for (let i = 0; i < 4; i++) {
+                    result += chars.charAt(Math.floor(Math.random() * chars.length));
+                }
+                
+                return result + 'ML';
+            }
+            
+            // 生成符合规则的IMEI[1](@ref)[2](@ref)
+            generateIMEI() {
+                let imei = '';
+                // TAC (Type Allocation Code) - 更新为2025年新款设备的TAC
+                const tacOptions = ['35874510', '35874511', '35874512', '35789012', '35789013'];
+                imei += tacOptions[Math.floor(Math.random() * tacOptions.length)];
+                
+                // 序列号部分
+                for (let i = 0; i < 6; i++) {
+                    imei += Math.floor(Math.random() * 10);
+                }
+                
+                // 计算校验位[1](@ref)
+                let sum = 0;
+                for (let i = 0; i < imei.length; i++) {
+                    let digit = parseInt(imei[i]);
+                    if (i % 2 === 1) {
+                        digit *= 2;
+                        sum += digit > 9 ? digit - 9 : digit;
+                    } else {
+                        sum += digit;
+                    }
+                }
+                const checkDigit = (10 - (sum % 10)) % 10;
+                
+                return imei + checkDigit;
+            }
+            
+            // 生成MAC地址[4](@ref)
+            generateMACAddress() {
+                const hexChars = '0123456789ABCDEF';
+                let mac = '';
+                for (let i = 0; i < 6; i++) {
+                    if (i > 0) mac += ':';
+                    mac += hexChars.charAt(Math.floor(Math.random() * hexChars.length));
+                    mac += hexChars.charAt(Math.floor(Math.random() * hexChars.length));
+                }
+                return mac.toLowerCase();
+            }
+            
+            // 生成UDID[5](@ref)
+            generateUDID() {
+                return '0x' + Array.from({length: 14}, () => 
+                    Math.floor(Math.random() * 16).toString(16)).join('').toUpperCase();
+            }
+            
+            // 生成设备标识符[5](@ref)
+            generateDeviceIdentifier() {
+                const chars = '0123456789abcdef';
+                let result = '';
+                for (let i = 0; i < 40; i++) {
+                    result += chars.charAt(Math.floor(Math.random() * chars.length));
+                }
+                return result;
+            }
+            
+            // 生成型号代码
+            generateModelCode() {
+                const chars = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+                let result = 'F4Y'; // 更新为2025年新款代码
+                for (let i = 0; i < 5; i++) {
+                    result += chars.charAt(Math.floor(Math.random() * chars.length));
+                }
+                return result + '74WC';
+            }
+            
+            // 生成完整的设备信息（定制格式）[1](@ref)[3](@ref)
+            generateDeviceInfo(region, modelIdentifier, iosVersion) {
+                const modelInfo = this.deviceModels[modelIdentifier];
+                const regionSuffix = this.regions[region];
+                
+                const serialNumber = this.generateSerialNumber();
+                const imei = this.generateIMEI();
+                const imeiShort = imei.substring(0, imei.length - 1); // IMEI少一位
+                const wifiAddress = this.generateMACAddress();
+                const bluetoothAddress = this.generateMACAddress();
+                const udid = this.generateUDID();
+                const deviceIdentifier = this.generateDeviceIdentifier();
+                const modelCode = this.generateModelCode();
+                
+                // 按照您要求的格式生成[1](@ref)
+                return `${serialNumber}----${imei}----${imeiShort}----${wifiAddress}----${bluetoothAddress}----${udid}----${deviceIdentifier}----${modelCode}----${modelIdentifier}----${modelInfo.name} ${regionSuffix}----${modelInfo.internal}----${modelInfo.chip}----${modelInfo.baseband}----${iosVersion}`;
+            }
+        }
+
+        // 应用控制器
+        class AppController {
+            constructor() {
+                this.generator = new iOSDeviceGenerator();
+                this.devices = [];
+                this.initializeEventListeners();
+            }
+            
+            initializeEventListeners() {
+                document.getElementById('generate-btn').addEventListener('click', () => {
+                    this.generateDevices();
+                });
+                
+                document.getElementById('copy-btn').addEventListener('click', () => {
+                    this.copyToClipboard();
+                });
+                
+                document.getElementById('clear-btn').addEventListener('click', () => {
+                    this.clearResults();
+                });
+            }
+            
+            generateDevices() {
+                const region = document.getElementById('region').value;
+                const model = document.getElementById('model').value;
+                const iosVersion = document.getElementById('ios_version').value;
+                const count = parseInt(document.getElementById('count').value);
+                
+                let output = '';
+                const newDevices = [];
+                
+                for (let i = 0; i < count; i++) {
+                    const deviceInfo = this.generator.generateDeviceInfo(region, model, iosVersion);
+                    newDevices.push(deviceInfo);
+                    output += deviceInfo + '\n';
+                }
+                
+                document.getElementById('output-result').value = output;
+                this.devices = newDevices;
+                this.updateStats();
+            }
+            
+            copyToClipboard() {
+                const outputText = document.getElementById('output-result').value;
+                if (!outputText.trim()) {
+                    alert('没有内容可复制');
+                    return;
+                }
+                
+                navigator.clipboard.writeText(outputText).then(() => {
+                    alert('内容已复制到剪贴板！');
+                }).catch(err => {
+                    console.error('复制失败: ', err);
+                    // 降级方案：使用execCommand
+                    const textarea = document.getElementById('output-result');
+                    textarea.select();
+                    document.execCommand('copy');
+                    alert('内容已复制到剪贴板！');
+                });
+            }
+            
+            clearResults() {
+                if (confirm('确定要清空所有生成的设备数据吗？')) {
+                    document.getElementById('output-result').value = '';
+                    this.devices = [];
+                    this.updateStats();
+                }
+            }
+            
+            updateStats() {
+                document.getElementById('device-count').textContent = this.devices.length;
+                
+                const uniqueModels = new Set(this.devices.map(d => {
+                    const parts = d.split('----');
+                    return parts[8]; // 设备型号索引
+                }));
+                document.getElementById('unique-model').textContent = uniqueModels.size;
+                
+                if (this.devices.length > 0) {
+                    const latestIOS = this.devices.reduce((max, device) => {
+                        const parts = device.split('----');
+                        const iosVersion = parts[parts.length - 1]; // iOS版本在最后
+                        return iosVersion > max ? iosVersion : max;
+                    }, '0');
+                    document.getElementById('latest-ios').textContent = latestIOS;
+                } else {
+                    document.getElementById('latest-ios').textContent = '-';
+                }
+            }
+        }
+
+        // 初始化应用
+        document.addEventListener('DOMContentLoaded', () => {
+            new AppController();
+        });
+    </script>
+</body>
 </html>
